@@ -11,6 +11,7 @@ import numpy as np
 from mpi4py import MPI
 from petsc4py import PETSc
 
+import pyvistaqt as pvqt
 import pyvista as pv
 
 """
@@ -139,10 +140,35 @@ opts[f"{option_prefix}pc_type"] = "lu"
 opts[f"{option_prefix}pc_factor_mat_solver_type"] = "mumps"
 ksp.setFromOptions()
 
-#Get c and dofs
+
+"""
+Timestep
+"""
+T = 10*dt
+t=0.0
+while t < T:
+    t += dt
+    res = solver.solve(u)
+    print(f"Step {int(t/dt)}: num iterations: {res[0]}")
+    u0.x.array[:] = u.x.array
+
+
+"""
+Plot
+"""
 
 V0, dofs = ME.sub(0).collapse()
 topology, cell_types, x = plot.create_vtk_mesh(V0)
-grid = pv.un
+#Generate mesh object for pyvista
+grid = pv.UnstructuredGrid(topology,cell_types,x)
+
+#Get last c values from last timestep
+grid.point_data["c"] = u.x.array[dofs].real
+grid.set_active_scalars("c")
+
+pv.OFF_SCREEN = True
+pv.plot(grid,show_edges=True, screenshot = "c.png")
+
+
 
 
