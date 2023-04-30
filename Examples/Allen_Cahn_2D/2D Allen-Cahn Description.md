@@ -50,7 +50,7 @@ Using a suitable boundary condition e.g., no flux, the above integral is simply 
 $$
 \frac{d}{dt}\int_{V} c \ dV  = - \int_{V} f'(c) \ dV
 $$
-We can see that mass conservation is not guaranteed even with a no-flux boundary condition on the domain. 
+We can see that mass conservation is not uaranteed even with a no-flux boundary condition on the domain. 
 
 ### Energy Conservation
 
@@ -104,9 +104,9 @@ $$
 
 The last feature we shall note is that for a curved surface, we can track the evolution of the mean curvature analytically. This means for a benchmarking case of a circle / sphere, we can track the evolution of its radius $r$,
 $$
-r(t) = \sqrt{r_{0}^{2} + 2(1-d)t},
+r(t) = \sqrt{r_{0}^{2} + 2(1-d)\hat{t}},
 $$
-where $r_{0}$ is the initial radius of the circle, $d$ is the dimension of the system (i.e., 2 for a 2D simulation), and $t$ is the time. 
+where $r_{0}$ is the initial radius of the circle, $d$ is the dimension of the system (i.e., 2 for a 2D simulation), and $\hat{t}$ is the time scaled by $\kappa$ i.e., $\hat{t} = \kappa t$  
 
 ## Weak Form
 
