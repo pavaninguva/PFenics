@@ -50,7 +50,7 @@ Using a suitable boundary condition e.g., no flux, the above integral is simply 
 $$
 \frac{d}{dt}\int_{V} c \ dV  = - \int_{V} f'(c) \ dV
 $$
-We can see that mass conservation is not uaranteed even with a no-flux boundary condition on the domain. 
+We can see that mass conservation is not guaranteed even with a no-flux boundary condition on the domain. 
 
 ### Energy Conservation
 
@@ -102,11 +102,11 @@ $$
 
 ### Mean Curvature Flow
 
-The last feature we shall note is that for a curved surface, we can track the evolution of the mean curvature analytically. This means for a benchmarking case of a circle / sphere, we can track the evolution of its radius $r$,
+The last feature we shall note is that for a curved surface, we can track the evolution of the mean curvature analytically. This means for a benchmarking case of a circle / sphere, we can track the evolution of the area,
 $$
-r(t) = \sqrt{r_{0}^{2} + 2(1-d)\hat{t}},
+\pi R^{2} = \pi R_{0}^{2} - 2 \pi M\kappa t
 $$
-where $r_{0}$ is the initial radius of the circle, $d$ is the dimension of the system (i.e., 2 for a 2D simulation), and $\hat{t}$ is the time scaled by $\kappa$ i.e., $\hat{t} = \kappa t$  
+where $R$ is the radius of the circle and $t$ is the time. 
 
 ## Weak Form
 
@@ -151,3 +151,4 @@ We are thus in a position to put implement the Allen-Cahn equation into FEniCS.
 1. Kim, Y., Ryu, G. and Choi, Y., 2021. Fast and accurate numerical solution of Allen–Cahn equation. *Mathematical Problems in Engineering*, *2021*, pp.1-12.
 2. Church, J.M., Guo, Z., Jimack, P.K., Madzvamuse, A., Promislow, K., Wetton, B., Wise, S.M. and Yang, F., 2019. High accuracy benchmark problems for Allen-Cahn and Cahn-Hilliard dynamics. *Communications in computational physics*, *26*(4).
 3. Li, Y., Lee, H.G., Jeong, D. and Kim, J., 2010. An unconditionally stable hybrid numerical method for solving the Allen–Cahn equation. *Computers & Mathematics with Applications*, *60*(6), pp.1591-1606.
+4. Chen, L.Q. and Zhao, Y., 2022. From classical thermodynamics to phase-field method. *Progress in Materials Science*, *124*, p.100868.

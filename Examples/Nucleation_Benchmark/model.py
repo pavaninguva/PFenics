@@ -9,30 +9,24 @@ import ufl
 
 #Define time parameters
 t = 0.0
-tend = 200
-nsteps = 50
+tend = 100
+nsteps = 100
 dt = (tend-t)/nsteps
 
 #Define mesh
 nx = ny = 100
-
-domain = mesh.create_rectangle(MPI.COMM_WORLD, [[0, 0],[2*np.pi, 2*np.pi]], [nx,ny])
+domain = mesh.create_rectangle(MPI.COMM_WORLD, [[-50, -50],[50, 50]], [nx,ny])
 
 # domain = mesh.create_unit_square(MPI.COMM_WORLD,nx,ny,mesh.CellType.triangle)
-P1 = ufl.FiniteElement("Lagrange",domain.ufl_cell(),1)
+P1 = ufl.FiniteElement("Lagrange",domain.ufl_cell(),2)
 V = fem.FunctionSpace(domain,P1)
 v = ufl.TestFunction(V)
 
-#Define initial condition
-
-def initial_condition(x,a=0.1,r0=2.0):
-    return np.tanh((np.sqrt(( x[0]-np.pi)**2  + (x[1]-np.pi)**2)-r0)/(np.sqrt(2)*a))
-
-
-#no flux boundary conditions are the default
+def initial_condition(x,r0=1.0*5):
+    return 0.5*(1-np.tanh((np.sqrt((x[0])**2 +(x[1])**2)-r0)/(np.sqrt(2))))
 
 #Create output file
-xdmf = io.XDMFFile(domain.comm,"ac.xdmf","w")
+xdmf = io.XDMFFile(domain.comm,"nb_100.xdmf","w")
 xdmf.write_mesh(domain)
 
 #Define solution variable and interpolate initial solution
@@ -46,13 +40,20 @@ c.name="$c$"
 c.interpolate(initial_condition)
 xdmf.write_function(c,t)
 
+#Compute g' and p'
+g = (c**2)*(1-c)**2
+dgdc = ufl.diff(g,c)
 
-#Compute f'
-f = 0.25*(c**2 -1)**2
-dfdc = ufl.diff(f,c)
-kappa = 0.01
+DeltaF = np.sqrt(2)/30.0
+p = (c**3)*(10 - 15*c + 6*c**2)
+dpdc = ufl.diff(p,c)
 
-F = inner(c,v)*dx - inner(c0,v)*dx + kappa*dt*inner(grad(c),grad(v))*dx + dt*inner(dfdc,v)*dx
+#Define problem
+F = (inner(c,v)*dx - inner(c0,v)*dx + 
+    dt*inner(grad(c),grad(v))*dx + 
+    dt*inner(dgdc,v)*dx -
+    DeltaF*dt*inner(dpdc,v)*dx
+    )
 
 #Setup solver
 problem = NonlinearProblem(F, c)
@@ -70,6 +71,10 @@ ksp.setFromOptions()
 
 #Timestepping
 
+#Introduce skipping for output to output only every nth step
+stride = 2
+counter = 0
+
 while t < tend:
     #Update t
     t += dt
@@ -79,8 +84,8 @@ while t < tend:
     #Update c0
     c0.x.array[:] = c.x.array
     #Write to xdmf
-    xdmf.write_function(c,t)
+    counter = counter +1
+    if counter % stride == 0:
+        xdmf.write_function(c,t)
+
 xdmf.close()
-
-
-
