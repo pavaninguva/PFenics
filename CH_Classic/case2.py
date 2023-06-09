@@ -7,27 +7,26 @@ from dolfinx.nls.petsc import NewtonSolver
 from ufl import dx, grad, inner
 import ufl
 
-
 #Define time parameters
 t = 0.0
-tend = 100
-nsteps = 200 
+tend = 20.0
+nsteps = 2e3
 dt = (tend-t)/nsteps
 
 #Model parameters
-kappa = 0.05**2
+kappa = 1e-2
 M = 1.0
 
 #Define mesh
-nx = ny = 100
+nx = ny = 200
 domain = mesh.create_rectangle(MPI.COMM_WORLD, [[0.0,0.0],[2*np.pi, 2*np.pi]], [nx,ny])
 
 #Create output file
-xdmf = io.XDMFFile(domain.comm,"CH1.xdmf","w")
+xdmf = io.XDMFFile(domain.comm,"CH2_2.xdmf","w")
 xdmf.write_mesh(domain)
 
 #Define model
-P1 = ufl.FiniteElement("Lagrange",domain.ufl_cell(),2)
+P1 = ufl.FiniteElement("Lagrange",domain.ufl_cell(),1)
 ME = fem.FunctionSpace(domain,P1*P1)
 q,v = ufl.TestFunctions(ME)
 
@@ -39,54 +38,39 @@ c,mu = ufl.split(u)
 c0,mu0 = ufl.split(u0)
 
 #Define Equation
+# c0 = ufl.variable(c0)
+# f0 = 0.25*(1-c0**2)**2
+# dfdc = ufl.diff(f0,c0)
 c = ufl.variable(c)
 f = 0.25*(1-c**2)**2
 dfdc = ufl.diff(f,c)
-
 
 F0 = inner(c,q)*dx - inner(c0,q)*dx + M*dt*inner(grad(mu),grad(q))*dx
 F1 = inner(mu,v)*dx - inner(dfdc,v)*dx - kappa*inner(grad(c),grad(v))*dx
 F = F0 + F1
 
+#Initial conditions
+# def initial_condition(x):
+#     #Unpack x and y 
+#     x_ = x[0]
+#     y_ = x[1]
 
-#Define initial conditions
-x_list = [x*np.pi for x in [0.5, 0.25, 0.5, 1.0, 1.5, 1.0, 1.5]]
-y_list = [x*np.pi for x in [0.5, 0.75, 1.25, 0.25, 0.25, 1.0, 1.5]]
-r_list = [x*np.pi for x in [0.2, (2/15), (2/15), 0.1, 0.1, 0.25, 0.25]]
-loc_list = [list(x) for x in zip(x_list,y_list,r_list)]
+#     f = 0.05*(
+#         np.cos(3*x_)*np.cos(4*y_) + (np.cos(3*x_)*np.cos(4*y_))**2 +
+#         np.cos(x_ - 5*y_)*np.cos(2*x_ - y_))
+#     return f
 
+def initial_condition(x):
+    # values = np.zeros((2,x.shape[1]))
+    values = 0.0 + 0.02*(0.5-np.random.rand(x.shape[1]))
+    return values
 
-def initial_condition(x, kappa = kappa, loclist = loc_list):
-    #Unpack x and y 
-    x_ = x[0]
-    y_ = x[1]
-
-    def f(x_,y_,loc, kappa):
-        xval,yval,rval = loc
-        s_vals = np.sqrt((x_-xval)**2 + (y_-yval)**2) -rval
-        f_vals = np.zeros_like(s_vals)
-        for idx,s in np.ndenumerate(s_vals):
-            if s < 0:
-                f_vals[idx] = 2*np.exp(-kappa/(s**2))
-            else:
-                f_vals[idx] = 0.0
-        return f_vals
-    
-    sum_ = 0.0
-    for loc_ in loclist:
-        sum_ = sum_ + f(x_,y_,loc_,kappa)
-
-    return -1.0 + sum_
-
-# Zero u
+#Apply IC
 u.x.array[:] = 0.0
-#Apply initial condition
 u.sub(0).interpolate(initial_condition)
 u.x.scatter_forward()
 c = u.sub(0)
-#Write IC to u0
 u0.x.array[:] = u.x.array
-#Output IC to file
 xdmf.write_function(c,t)
 
 #Setup solver
@@ -99,14 +83,14 @@ solver.report = True
 ksp = solver.krylov_solver
 opts = PETSc.Options()
 option_prefix = ksp.getOptionsPrefix()
-opts[f"{option_prefix}ksp_type"] = "gmres"
+opts[f"{option_prefix}ksp_type"] = "preonly"
 opts[f"{option_prefix}pc_type"] = "lu"
-opts[f"{option_prefix}pc_factor_mat_solver_type"] = "petsc"
+# opts[f"{option_prefix}pc_factor_mat_solver_type"] = "mumps"
 ksp.setFromOptions()
 
 
 #Introduce skipping for output to output only every nth step
-stride = 8
+stride = 50
 counter = 0
 
 #Timestepping

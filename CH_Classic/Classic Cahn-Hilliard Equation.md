@@ -22,7 +22,7 @@ Assuming a constant mobility and $\kappa$ (which is the case for the classic CH 
 $$
 \frac{\partial c}{\partial t} = \nabla^{2} \left(f'(c)\right) - \kappa \nabla^{4} c.
 $$
-Typically, $f(c) = \frac{1}{4} (c^{2} -1)^{2}$. As the CH equation is a 4th order PDE, this makes it difficult to naively implement it in FEniCS, hence it is typically solved as a set of coupled 2nd order PDEs,
+Typically, $f(c) = \frac{1}{4} (c^{2} -1)^{2}$ is specified. As the CH equation is a 4th order PDE, this makes it difficult to naively implement it in FEniCS, hence it is typically solved as a set of coupled 2nd order PDEs,
 $$
 \frac{\partial c}{\partial t} = \nabla \cdot \left( M \nabla \mu \right), \\
 %
@@ -68,7 +68,12 @@ $$
 
 ### Case 2: Energy Decay
 
+We track the evolution of the energy on the domain $V \in [0,2\pi]^{2}$ with $\kappa = 0.01$ and the initial conditions
+$$
+c(x,y,0) = 0.0 + \epsilon,
+$$
 
+where $\epsilon$ is random noise that is added to the homogeneous profile to initiate demixing. 
 
 ## Weak Form
 

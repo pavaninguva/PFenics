@@ -90,6 +90,41 @@ $$
 \therefore LHS = RHS
 $$
 
+To obtain an analytical expression for $\sigma$, there are a few more steps. 
+$$
+\frac{dc}{dx} = \frac{1}{\sqrt{2\kappa}} \text{sech}^{2}{\left( \frac{x}{\sqrt{2\kappa}} \right)}
+$$
+
+$$
+\left( \frac{dc}{dx} \right)^{2} = \frac{1}{2\kappa}\text{sech}^{4}{\left( \frac{x}{\sqrt{2\kappa}} \right)}
+$$
+
+$$
+\int_{-\infty}^{\infty} \kappa \left( \frac{dc}{dx} \right)^{2} dx =  \frac{1}{2}\int_{-\infty}^{\infty}\text{sech}^{4}{\left( \frac{x}{\sqrt{2\kappa}} \right)} dx \\
+%
+= \frac{1}{2}\left[\sqrt{2\kappa}\tanh{\left( \frac{x}{\sqrt{2\kappa}}\right)} - \frac{\sqrt{2\kappa}}{3} \tanh^{3}{\left(\frac{x}{\sqrt{2\kappa}}\right)} \right]^{\infty}_{-\infty}\\
+%
+= \frac{1}{2} \left[ \left( \sqrt{2\kappa} - \frac{1}{3}\sqrt{2\kappa} \right) - \left( -\sqrt{2\kappa} + \frac{1}{3}\sqrt{2\kappa} \right) \right] \\
+%
+= \frac{1}{2} \left( \frac{4}{3}\sqrt{2\kappa} \right) = \frac{2\sqrt{2}}{3}\sqrt{\kappa}
+$$
+
+$$
+\therefore \sigma = \frac{2\sqrt{2}}{3}\sqrt{\kappa}
+$$
+
+### 2. Allen-Cahn with Logarithmic Potential and Constant Mobility
+
+At equilibrium, in 1-D, the model equation is 
+$$
+\frac{1}{\kappa}\frac{d^{2}c}{dx^{2}} = \ln{\left( \frac{x}{1-x} \right)} - 2 N\chi c + N\chi,
+$$
+where $\kappa = \frac{2}{3}N\chi$ as previously discussed when using a F-H type free energy. 
+
+The solution to this equation is very sensitive to the initial guess. For a given value of $N\chi$, it is possible to find the equilibrium composition of each phase using a function like `fsolve`. This is equivalent to finding the minima of the potential. Assuming we found the two minima $c_{0}$ and $c_{1}$, the initial guess is specified as a modified Boltzmann sigmoid curve
+$$
+c^{*}(x) = \frac{c_{0} - c_{1}}{1 + \exp(N\chi x)} + c_{1}
+$$
 
 
 ## Weak Form Representation

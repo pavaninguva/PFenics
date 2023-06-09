@@ -95,4 +95,4 @@ $$
 1. Inguva, P.K., Walker, P.J., Yew, H.W., Zhu, K., Haslam, A.J. and Matar, O.K., 2021. Continuum-scale modelling of polymer blends using the Cahn–Hilliard equation: transport and thermodynamics. *Soft Matter*, *17*(23), pp.5645-5665.
 2. Nauman, E.B. and He, D.Q., 1994. Morphology predictions for ternary polymer blends undergoing spinodal decomposition. *Polymer*, *35*(11), pp.2243-2255.
 3. Ariyapadi, M.V. and Nauman, E.B., 1990. Gradient energy parameters for polymer–polymer–solvent systems and their application to spinodal decomposition in true ternary systems. *Journal of Polymer Science Part B: Polymer Physics*, *28*(12), pp.2395-2409.
-4. 
+4. Vasishtha, N. and Nauman, E.B., 1994. Hydrodynamic effects in the phase separation of binary polymer mixtures. *Chemical Engineering Communications*, *129*(1), pp.29-39.

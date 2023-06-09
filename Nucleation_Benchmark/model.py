@@ -60,6 +60,7 @@ problem = NonlinearProblem(F, c)
 solver = NewtonSolver(MPI.COMM_WORLD, problem)
 solver.convergence_criterion = "residual"
 solver.atol = 1e-8
+solver.report = True
 
 ksp = solver.krylov_solver
 opts = PETSc.Options()
