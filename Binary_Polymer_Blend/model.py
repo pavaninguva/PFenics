@@ -47,7 +47,6 @@ F1 = inner(mu,v)*dx - inner(dfdc,v)*dx - kappa*inner(grad(c),grad(v))*dx
 F = F0 + F1
 
 def initial_condition(x):
-    # values = np.zeros((2,x.shape[1]))
     values = 0.5 + 0.02*(0.5-np.random.rand(x.shape[1]))
     return values
 

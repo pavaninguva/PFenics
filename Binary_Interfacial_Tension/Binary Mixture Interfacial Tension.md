@@ -24,7 +24,7 @@ $$
 $$
 where $L_{0}$ is the length scale and as considered in the Binary polymer blend case is $R_{G}$. We can call the LHS $\tilde{\sigma}$ to indicate a dimensionless interfacial tension for clarity. 
 
-We consider four cases:
+We consider a few cases.
 
 ### 1. Allen-Cahn with Quartic Potential and Constant Mobility
 
@@ -126,6 +126,41 @@ $$
 c^{*}(x) = \frac{c_{0} - c_{1}}{1 + \exp(N\chi x)} + c_{1}
 $$
 
+### 3. Cahn-Hilliard with Quartic Potential and Constant Mobility
+
+At equilibrium, we have
+$$
+\nabla^{2}\mu = 0, \quad  \kappa \nabla^{c}c = f'(c) - \mu
+$$
+In 1-D,
+$$
+\frac{d^{2}\mu}{dx^{2}} = 0 \\
+\kappa \frac{d^{2}c}{dx^{2}} + \mu - f'(c) = 0
+$$
+We can show that the following is a solution,
+$$
+c(x) = \tanh{\left(\frac{x}{\sqrt{2\kappa}}\right)}, \quad \mu(x) = 0.
+$$
+ As,
+$$
+\mu(x) = f'(c) - \kappa \frac{d^{2}c}{dx^{2}} \\
+%
+\kappa \frac{d^{2}c}{dx^{2}} = -\tanh{\left( \frac{x}{\sqrt{2\kappa}}\right)} \frac{1}{\cosh^{2}{\left( \frac{x}{\sqrt{2\kappa}} \right)}}
+$$
+
+$$
+f'(c) = -c(1-c^{2}) \\ = \tanh{\left(\frac{x}{\sqrt{2\kappa}}\right)} \left( \left( \frac{\sinh^{2}{\left( \frac{x}{\sqrt{2\kappa}} \right)}}{\cosh^{2}{\left( \frac{x}{\sqrt{2\kappa}} \right)}} \right) -1  \right) \\
+%
+= \tanh{\left( \frac{x}{\sqrt{2\kappa}}\right)} \frac{1}{\cosh^{2}{\left( \frac{x}{\sqrt{2\kappa}} \right)}}
+$$
+
+$$
+\mu(x) = 0 \Rightarrow \frac{d^{2}\mu}{dx^{2}} = 0. 
+$$
+
+We see that the solution is valid. 
+
+The numerical implementation is quite sensitive and converges to nonphysical results. This warrants further exploration. 
 
 ## Weak Form Representation
 
@@ -133,11 +168,27 @@ $$
 
 Recall the Allen-Cahn equation at equilibrium,
 $$
-\kappa \frac{d^{2}c}{dx^{2}} + c - c^{3} =  0
+\kappa \nabla^{2}c - f'(c) = 0
 $$
 Introduce test function $v$ and integrate by parts
+$$
+\int_{V} \kappa (\nabla c \cdot \nabla v) +  f'(c)v  \ dV = 0
+$$
 
+### Equilibrium Cahn-Hilliard Equation
 
+At equilibrium
+$$
+\nabla^{2}\mu = 0 \\
+%
+\kappa \nabla^{2}c + \mu - f'(c) = 0
+$$
+Introduce test functions $q$ and $v$ and integrate
+$$
+\int_{V} \nabla \mu \cdot \nabla q \ dV = 0 \\
+%
+\int_{V} \mu v - f'(c)v - \kappa \nabla c \cdot \nabla v = 0
+$$
 
 ## References
 
