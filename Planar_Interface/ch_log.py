@@ -83,7 +83,9 @@ def model(nx, dt, tend, Nchi):
     #Append xvals 
     output_df["x"] = x[:,0]
     output_df["0.0"] = u.x.array[dofs].real
-
+    # local_vol = fem.assemble_scalar(fem.form(fem.Constant(domain, 1)*dx))
+    # vol = MPI.reduce(local_vol, MPI.SUM, root=0)
+    # local_u = fem.form(u*dx)
     while t < tend - 1e-8:
         try:
             #Update t
@@ -92,11 +94,16 @@ def model(nx, dt, tend, Nchi):
             res = solver.solve(u)
             print(f"Step {int(t/dt)}: num iterations: {res[0]}")
             #Update u0
+            # l_c = fem.assemble_scalar(local_u)
+            # lc_u = MPI.reduce(l_c, MPI.SUM, root=0)
+            # print(lc_u/vol)
             u0.x.array[:] = u.x.array
+        
             counter += 1
             if counter % stride == 0:
                 output_df["%s"%t] = u.x.array[dofs].real
         except:
+            #Output last converged value for
             output_df["%s"%t] = u0.x.array[dofs].real
             break
     return output_df
