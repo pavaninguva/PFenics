@@ -8,13 +8,12 @@ from ufl import dx, grad, inner
 import ufl
 import multiprocessing
 
-#Define time parameters
 
-def cahn_hilliard(r0,stride=8):
-
+def cahn_hilliard(a0,stride=20):
+    #Define time parameters
     t = 0.0
-    tend = 40
-    nsteps = 800 
+    tend = 20.0
+    nsteps = 2e3 
     dt = (tend-t)/nsteps
 
     #Model parameters
@@ -24,11 +23,6 @@ def cahn_hilliard(r0,stride=8):
     #Define mesh
     nx = ny = 100
     domain = mesh.create_rectangle(MPI.COMM_WORLD, [[0.0,0.0],[2*np.pi, 2*np.pi]], [nx,ny])
-
-    #Create output file
-    filename = str(r0) +".xdmf"
-    xdmf = io.XDMFFile(domain.comm,filename,"w")
-    xdmf.write_mesh(domain)
 
     #Define model
     P1 = ufl.FiniteElement("Lagrange",domain.ufl_cell(),2)
@@ -47,48 +41,26 @@ def cahn_hilliard(r0,stride=8):
     f = 0.25*(1-c**2)**2
     dfdc = ufl.diff(f,c)
 
-
     F0 = inner(c,q)*dx - inner(c0,q)*dx + M*dt*inner(grad(mu),grad(q))*dx
     F1 = inner(mu,v)*dx - inner(dfdc,v)*dx - kappa*inner(grad(c),grad(v))*dx
     F = F0 + F1
 
-    x_list = [x*np.pi for x in [0.5,1.5]]
-    y_list = [x*np.pi for x in [1.0, 1.0]]
-    r_list = [x*np.pi for x in [r0,0.25]]
-    loc_list = [list(x) for x in zip(x_list,y_list,r_list)]
-
-
-    def initial_condition(x, kappa = kappa, loclist = loc_list):
-        #Unpack x and y 
-        x_ = x[0]
-        y_ = x[1]
-
-        def f(x_,y_,loc, kappa):
-            xval,yval,rval = loc
-            s_vals = np.sqrt((x_-xval)**2 + (y_-yval)**2) -rval
-            f_vals = np.zeros_like(s_vals)
-            for idx,s in np.ndenumerate(s_vals):
-                if s < 0:
-                    f_vals[idx] = 2*np.exp(-kappa/(s**2))
-                else:
-                    f_vals[idx] = 0.0
-            return f_vals
-        
-        sum_ = 0.0
-        for loc_ in loclist:
-            sum_ = sum_ + f(x_,y_,loc_,kappa)
-
-        return -1.0 + sum_
-
-    # Zero u
+    def initial_condition(x):
+        values = a0 + 0.02*(0.5-np.random.rand(x.shape[1]))
+        return values
+    
+    #Apply IC
     u.x.array[:] = 0.0
-    #Apply initial condition
     u.sub(0).interpolate(initial_condition)
     u.x.scatter_forward()
     c = u.sub(0)
-    #Write IC to u0
     u0.x.array[:] = u.x.array
-    #Output IC to file
+
+    #Define solver file
+    filename = str(a0)+ ".xdmf"
+    xdmf = io.XDMFFile(domain.comm,filename,"w")
+    xdmf.write_mesh(domain)
+    #Write initial conditions
     xdmf.write_function(c,t)
 
     #Setup solver
@@ -124,8 +96,8 @@ def cahn_hilliard(r0,stride=8):
     xdmf.close()
 
 #Run cases
-rvals = np.linspace(0.2,0.3,11).tolist()
-it = iter(rvals)
+avals = np.linspace(0.0,0.5,11).tolist()
+it = iter(avals)
 for val in it:
     val1 = round(val,2)
     val2 = round(next(it,np.nan),2)
@@ -141,3 +113,5 @@ for val in it:
         print("waiting...")
         process1.join()
         process2.join()
+
+    

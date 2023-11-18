@@ -96,6 +96,8 @@ $$
 \int_{V} \mu^{n+1}v - f'(c^{n+1})v - \kappa \nabla c^{n+1} \cdot \nabla v \ dV = 0
 $$
 
+
+
 ## References
 
 1. Wu, H., 2021. A Review on the Cahn-Hilliard Equation: Classical Results and Recent Advances in Dynamic Boundary Conditions. *arXiv preprint arXiv:2112.13812*.
