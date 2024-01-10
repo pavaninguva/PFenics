@@ -11,18 +11,19 @@ import ufl
 
 #Define time parameters
 t = 0.0
-tend = 1000
-dt = 1.0
+tend = 2000
+dt = 2.0
 
 #Define mesh
 nx = ny = 128
 domain = mesh.create_rectangle(MPI.COMM_WORLD, [[0.0,0.0],[128.0, 128.0]], [nx,ny])
 
 #Parameters
-def Nchi_func(t):
-    return 1.0 + (3/1000)*t
-Nchi = fem.Constant(mesh,ScalarType(Nchi_func(t)))
-kappa = fem.Constant(mesh,ScalarType((2/3)*Nchi))
+Nchi = 1.5
+kappa = (2/3)*Nchi
+
+Nchi_ = fem.Constant(domain,PETSc.ScalarType(Nchi))
+kappa_ = fem.Constant(domain,PETSc.ScalarType(kappa))
 
 #Create output file
 xdmf = io.XDMFFile(domain.comm,"Binary_polymer.xdmf","w")
@@ -42,11 +43,11 @@ c0,mu0 = ufl.split(u0)
 
 #Define chemical potential
 c = ufl.variable(c)
-f = c*ln(c) + (1-c)*ln(1-c) + Nchi*c*(1-c)
+f = c*ln(c) + (1-c)*ln(1-c) + Nchi_*c*(1-c)
 dfdc = ufl.diff(f,c)
 
 F0 = inner(c,q)*dx - inner(c0,q)*dx + (c*(1-c))*dt*inner(grad(mu),grad(q))*dx
-F1 = inner(mu,v)*dx - inner(dfdc,v)*dx - kappa*inner(grad(c),grad(v))*dx
+F1 = inner(mu,v)*dx - inner(dfdc,v)*dx - kappa_*inner(grad(c),grad(v))*dx
 F = F0 + F1
 
 def initial_condition(x):
@@ -78,14 +79,17 @@ opts[f"{option_prefix}pc_type"] = "lu"
 ksp.setFromOptions()
 
 #Introduce skipping for output to output only every nth step
-stride = 25
+stride = 1.0
 counter = 0
 
 #Timestepping
 while t < tend:
     #Update t
     t += dt
-    Nchi.value = 
+    Nchi_t = Nchi + (2.5/tend)*t
+    print(f"Nchi={Nchi_t}")
+    Nchi_.value = Nchi_t
+    kappa_.value = (2/3)*Nchi_t
     #Solve
     res = solver.solve(u)
     print(f"Step {int(t/dt)}: num iterations: {res[0]}")
