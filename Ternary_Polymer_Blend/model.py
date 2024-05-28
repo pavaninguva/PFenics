@@ -34,6 +34,8 @@ xdmf1 = io.XDMFFile(domain.comm,"a.xdmf","w")
 xdmf1.write_mesh(domain)
 xdmf2 = io.XDMFFile(domain.comm,"b.xdmf","w")
 xdmf2.write_mesh(domain)
+xdmf3 = io.XDMFFile(domain.comm, "c.xdmf","w")
+xdmf3.write_mesh(domain)
 
 
 #Define test functions

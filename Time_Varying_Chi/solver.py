@@ -11,22 +11,22 @@ import ufl
 
 #Define time parameters
 t = 0.0
-tend = 2000
-dt = 2.0
+tend = 1000
+dt = 1.0
 
 #Define mesh
 nx = ny = 128
 domain = mesh.create_rectangle(MPI.COMM_WORLD, [[0.0,0.0],[128.0, 128.0]], [nx,ny])
 
 #Parameters
-Nchi = 1.5
+Nchi = 3.0
 kappa = (2/3)*Nchi
 
 Nchi_ = fem.Constant(domain,PETSc.ScalarType(Nchi))
 kappa_ = fem.Constant(domain,PETSc.ScalarType(kappa))
 
 #Create output file
-xdmf = io.XDMFFile(domain.comm,"Binary_polymer.xdmf","w")
+xdmf = io.XDMFFile(domain.comm,"sinusodal.xdmf","w")
 xdmf.write_mesh(domain)
 
 #Define test functions
@@ -86,7 +86,7 @@ counter = 0
 while t < tend:
     #Update t
     t += dt
-    Nchi_t = Nchi + (2.5/tend)*t
+    Nchi_t = 2.75 + 1.25*np.cos(0.02*np.pi*t) 
     print(f"Nchi={Nchi_t}")
     Nchi_.value = Nchi_t
     kappa_.value = (2/3)*Nchi_t

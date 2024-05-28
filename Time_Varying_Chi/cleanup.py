@@ -14,6 +14,6 @@ if sort_individual_files == True:
         pd_array.sort_values(["Points:0","Points:1"],ascending=[False,True],inplace=True)
         pd_array.drop(columns=["Points:2"],inplace=True)
         counter_ = files.replace("t_","")
-        counter = round(int(counter_.replace(".csv",""))*2.0,1)
+        counter = round(int(counter_.replace(".csv",""))*1.0,1)
         file_name = "t-"+str(counter)+".csv"
         pd_array.to_csv(file_name,index=False)
