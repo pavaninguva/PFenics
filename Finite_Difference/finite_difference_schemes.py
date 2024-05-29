@@ -63,7 +63,37 @@ def backward_euler_fd_res(phi_new, phi_old):
 
     return res
 
+def theta_fd_res(phi_new, phi_old, theta=0.5):
+    #The theta scheme introduces a parameter theta which can be varied from 0 - 1 
+    #Theta = 1: backward euler
+    #Theta = 0: Forward euler
+    #Theta = 0.5: Crank-Nicolson
 
+    #Define chem_pot
+    mu_new = np.zeros_like(phi_old)
+    mu_old = np.zeros_like(phi_old)
+
+    mu_new[0] = dfdphi(phi_new[0]) -(2*kappa/(dx**2))*(phi_new[1] - phi_new[0])
+    mu_new[-1] = dfdphi(phi_new[-1]) - (2*kappa/(dx**2))*(phi_new[-2]-phi_new[-1])
+    mu_new[1:-1] = dfdphi(phi_new[1:-1]) - (kappa/(dx**2))*(phi_new[2:] -2*phi_new[1:-1] + phi_new[:-2])
+
+    mu_old[0] = dfdphi(phi_old[0]) -(2*kappa/(dx**2))*(phi_old[1] - phi_old[0])
+    mu_old[-1] = dfdphi(phi_old[-1]) - (2*kappa/(dx**2))*(phi_old[-2]-phi_old[-1])
+    mu_old[1:-1] = dfdphi(phi_old[1:-1]) - (kappa/(dx**2))*(phi_old[2:] -2*phi_old[1:-1] + phi_old[:-2])
+
+    res = np.zeros_like(phi_old)
+
+    res[0] =  (phi_new[0] - phi_old[0])/dt - (theta*((2/(dx**2))*(M_func_half(phi_new[0],phi_new[1]))*(mu_new[1] - mu_new[0])) +
+                                              (1-theta)*(2/(dx**2))*(M_func_half(phi_old[0],phi_old[1]))*(mu_old[1] - mu_old[0])
+                                              )
+    res[-1] = (phi_new[-1] - phi_old[-1])/dt -(theta*((2/(dx**2))*(M_func_half(phi_new[-1],phi_new[-2]))*(mu_new[-2]-mu_new[-1])) +
+                                               (1-theta)*((2/(dx**2))*(M_func_half(phi_old[-1],phi_old[-2]))*(mu_old[-2]-mu_old[-1]))
+                                                )
+    res[1:-1] = (phi_new[1:-1] - phi_old[1:-1])/dt - (theta*((1/(dx**2))*(M_func_half(phi_new[1:-1], phi_new[2:])*(mu_new[2:]-mu_new[1:-1]) - M_func_half(phi_new[1:-1],phi_new[:-2])*(mu_new[1:-1]-mu_new[:-2]))) +
+                                                      (1-theta)*((1/(dx**2))*(M_func_half(phi_old[1:-1], phi_old[2:])*(mu_old[2:]-mu_old[1:-1]) - M_func_half(phi_old[1:-1],phi_old[:-2])*(mu_old[1:-1]-mu_old[:-2])))
+                                                        )
+    
+    return res
 
 # Define initial condition as a sigmoid function
 def sigmoid(x, a, b):
@@ -95,7 +125,7 @@ def update(n):
     phi_old = phi.copy()
 
     def wrapped_residual(phi_new):
-        return backward_euler_fd_res(phi_new, phi_old)
+        return theta_fd_res(phi_new, phi_old,theta=0.5)
     
     phi_new = fsolve(wrapped_residual, phi_old)
     phi = phi_new.copy()
