@@ -47,49 +47,33 @@ def M_func_half(phi, phi_,option="1"):
 
 
 def backward_euler_fd_res(phi_new, phi_old):
+    #Define chem_pot
+    mu_new = np.zeros_like(phi_old)
+
+    mu_new[0] = dfdphi(phi_new[0]) -(2*kappa/(dx**2))*(phi_new[1] - phi_new[0])
+    mu_new[-1] = dfdphi(phi_new[-1]) - (2*kappa/(dx**2))*(phi_new[-2]-phi_new[-1])
+    mu_new[1:-1] = dfdphi(phi_new[1:-1]) - (kappa/(dx**2))*(phi_new[2:] -2*phi_new[1:-1] + phi_new[:-2])
+    
     # Define discretized equations as F(phi_new) = 0
     res = np.zeros_like(phi_old)
-    
-    # Handle internal points
-    # for i in range(2, nx-2):
-    #     mu_i__1_new = dfdphi(phi_new[i - 1]) - (kappa / (dx**2)) * (phi_new[i] - 2 * phi_new[i - 1] + phi_new[i - 2])
-    #     mu_i_new = dfdphi(phi_new[i]) - (kappa / (dx**2)) * (phi_new[i + 1] - 2 * phi_new[i] + phi_new[i - 1])
-    #     mu_i1_new = dfdphi(phi_new[i + 1]) - (kappa / (dx**2)) * (phi_new[i + 2] - 2 * phi_new[i + 1] + phi_new[i])
-    #     res[i] = phi_new[i] - phi_old[i] - (dt / (dx**2)) * (M_func_half(phi_new[i], phi_new[i + 1]) * (mu_i1_new - mu_i_new) - M_func_half(phi_new[i], phi_new[i - 1]) * (mu_i_new - mu_i__1_new))
-    mu_i__1_new = dfdphi(phi_new[1:-3]) - (kappa / dx**2) * (phi_new[2:-2] - 2 * phi_new[1:-3] + phi_new[0:-4])
-    mu_i_new = dfdphi(phi_new[2:-2]) - (kappa / dx**2) * (phi_new[3:-1] - 2 * phi_new[2:-2] + phi_new[1:-3])
-    mu_i1_new = dfdphi(phi_new[3:-1]) - (kappa / dx**2) * (phi_new[4:] - 2 * phi_new[3:-1] + phi_new[2:-2])
-    res[2:-2] = phi_new[2:-2] - phi_old[2:-2] - (dt / dx**2) * (M_func_half(phi_new[2:-2], phi_new[3:-1]) * (mu_i1_new - mu_i_new) - M_func_half(phi_new[2:-2], phi_new[1:-3]) * (mu_i_new - mu_i__1_new))
-    # Handle Neumann boundary conditions
-    # Left boundary (index 0 and 1)
-    mu_0_new = dfdphi(phi_new[0]) - (2 * kappa / dx**2) * (phi_new[1] - phi_new[0])
-    mu_1_new = dfdphi(phi_new[1]) - (kappa / dx**2) * (phi_new[2] - 2 * phi_new[1] + phi_new[0])
-    res[0] = phi_new[0] - phi_old[0] - (2 * dt / dx**2) * (M_func_half(phi_new[0], phi_new[1]) * (mu_1_new - mu_0_new))
-    
-    mu_2_new = dfdphi(phi_new[2]) - (kappa / dx**2) * (phi_new[3] - 2 * phi_new[2] + phi_new[1])
-    res[1] = phi_new[1] - phi_old[1] - (dt / dx**2) * (M_func_half(phi_new[1], phi_new[2]) * (mu_2_new - mu_1_new) - M_func_half(phi_new[1], phi_new[0]) * (mu_1_new - mu_0_new))
 
-    # Right boundary (index nx-2 and nx-1)
-    mu_N_new = dfdphi(phi_new[-1]) - (2 * kappa / dx**2) * (phi_new[-2] - phi_new[-1])
-    mu_N_1_new = dfdphi(phi_new[-2]) - (kappa / dx**2) * (phi_new[-3] - 2 * phi_new[-2] + phi_new[-1])
-    res[-1] = phi_new[-1] - phi_old[-1] - (2 * dt / dx**2) * (M_func_half(phi_new[-1], phi_new[-2]) * (mu_N_new - mu_N_1_new))
-    
-    mu_N_2_new = dfdphi(phi_new[-3]) - (kappa / dx**2) * (phi_new[-4] - 2 * phi_new[-3] + phi_new[-2])
-    res[-2] = phi_new[-2] - phi_old[-2] - (dt / dx**2) * (M_func_half(phi_new[-2], phi_new[-1]) * (mu_N_new - mu_N_1_new) - M_func_half(phi_new[-2], phi_new[-3]) * (mu_N_1_new - mu_N_2_new))
+    res[0] = (phi_new[0] - phi_old[0])/dt - (2/(dx**2))*(M_func_half(phi_new[0],phi_new[1]))*(mu_new[1] - mu_new[0])
+    res[-1] = (phi_new[-1] - phi_old[-1])/dt - (2/(dx**2))*(M_func_half(phi_new[-1],phi_new[-2]))*(mu_new[-2]-mu_new[-1])
+    res[1:-1] = (phi_new[1:-1] - phi_old[1:-1])/dt - (1/(dx**2))*(M_func_half(phi_new[1:-1], phi_new[2:])*(mu_new[2:]-mu_new[1:-1]) - M_func_half(phi_new[1:-1],phi_new[:-2])*(mu_new[1:-1]-mu_new[:-2]))
 
     return res
 
 
 
 # Define initial condition as a sigmoid function
-# def sigmoid(x, a, b):
-#     return 1 / (1 + np.exp(-a * (x - b)))
+def sigmoid(x, a, b):
+    return 1 / (1 + np.exp(-a * (x - b)))
 
-# # Parameters for the sigmoid function
-# a = 5  # Controls the steepness of the sigmoid
-# b = L / 2  # Center of the sigmoid function
-# phi0 = 0.2 + 0.6 * sigmoid(xvals, a, b)
-phi0 = np.random.normal(loc=0.5, scale=0.05, size=nx)
+# Parameters for the sigmoid function
+a = 5  # Controls the steepness of the sigmoid
+b = L / 2  # Center of the sigmoid function
+phi0 = 0.2 + 0.6 * sigmoid(xvals, a, b)
+# phi0 = np.random.normal(loc=0.5, scale=0.05, size=nx)
 phi = phi0.copy()
 
 
