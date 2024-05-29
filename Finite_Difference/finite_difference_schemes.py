@@ -21,7 +21,7 @@ nsteps = 10000
 dt = tf/nsteps
 
 #Material parameters
-chi = 6.0
+chi = 10.0
 kappa = (2/3)*chi
 
 #Provide analytical expressions for f and dfdphi
@@ -51,12 +51,15 @@ def backward_euler_fd_res(phi_new, phi_old):
     res = np.zeros_like(phi_old)
     
     # Handle internal points
-    for i in range(2, nx-2):
-        mu_i__1_new = dfdphi(phi_new[i - 1]) - (kappa / (dx**2)) * (phi_new[i] - 2 * phi_new[i - 1] + phi_new[i - 2])
-        mu_i_new = dfdphi(phi_new[i]) - (kappa / (dx**2)) * (phi_new[i + 1] - 2 * phi_new[i] + phi_new[i - 1])
-        mu_i1_new = dfdphi(phi_new[i + 1]) - (kappa / (dx**2)) * (phi_new[i + 2] - 2 * phi_new[i + 1] + phi_new[i])
-        res[i] = phi_new[i] - phi_old[i] - (dt / (dx**2)) * (M_func_half(phi_new[i], phi_new[i + 1]) * (mu_i1_new - mu_i_new) - M_func_half(phi_new[i], phi_new[i - 1]) * (mu_i_new - mu_i__1_new))
-
+    # for i in range(2, nx-2):
+    #     mu_i__1_new = dfdphi(phi_new[i - 1]) - (kappa / (dx**2)) * (phi_new[i] - 2 * phi_new[i - 1] + phi_new[i - 2])
+    #     mu_i_new = dfdphi(phi_new[i]) - (kappa / (dx**2)) * (phi_new[i + 1] - 2 * phi_new[i] + phi_new[i - 1])
+    #     mu_i1_new = dfdphi(phi_new[i + 1]) - (kappa / (dx**2)) * (phi_new[i + 2] - 2 * phi_new[i + 1] + phi_new[i])
+    #     res[i] = phi_new[i] - phi_old[i] - (dt / (dx**2)) * (M_func_half(phi_new[i], phi_new[i + 1]) * (mu_i1_new - mu_i_new) - M_func_half(phi_new[i], phi_new[i - 1]) * (mu_i_new - mu_i__1_new))
+    mu_i__1_new = dfdphi(phi_new[1:-3]) - (kappa / dx**2) * (phi_new[2:-2] - 2 * phi_new[1:-3] + phi_new[0:-4])
+    mu_i_new = dfdphi(phi_new[2:-2]) - (kappa / dx**2) * (phi_new[3:-1] - 2 * phi_new[2:-2] + phi_new[1:-3])
+    mu_i1_new = dfdphi(phi_new[3:-1]) - (kappa / dx**2) * (phi_new[4:] - 2 * phi_new[3:-1] + phi_new[2:-2])
+    res[2:-2] = phi_new[2:-2] - phi_old[2:-2] - (dt / dx**2) * (M_func_half(phi_new[2:-2], phi_new[3:-1]) * (mu_i1_new - mu_i_new) - M_func_half(phi_new[2:-2], phi_new[1:-3]) * (mu_i_new - mu_i__1_new))
     # Handle Neumann boundary conditions
     # Left boundary (index 0 and 1)
     mu_0_new = dfdphi(phi_new[0]) - (2 * kappa / dx**2) * (phi_new[1] - phi_new[0])
@@ -79,16 +82,15 @@ def backward_euler_fd_res(phi_new, phi_old):
 
 
 # Define initial condition as a sigmoid function
-def sigmoid(x, a, b):
-    return 1 / (1 + np.exp(-a * (x - b)))
+# def sigmoid(x, a, b):
+#     return 1 / (1 + np.exp(-a * (x - b)))
 
-# Parameters for the sigmoid function
-a = 5  # Controls the steepness of the sigmoid
-b = L / 2  # Center of the sigmoid function
-phi0 = 0.2 + 0.6 * sigmoid(xvals, a, b)
-# phi0 = np.random.normal(loc=0.5, scale=0.05, size=nx)
+# # Parameters for the sigmoid function
+# a = 5  # Controls the steepness of the sigmoid
+# b = L / 2  # Center of the sigmoid function
+# phi0 = 0.2 + 0.6 * sigmoid(xvals, a, b)
+phi0 = np.random.normal(loc=0.5, scale=0.05, size=nx)
 phi = phi0.copy()
-
 
 
 # Animation setup
@@ -96,9 +98,11 @@ fig, ax = plt.subplots()
 line, = ax.plot(xvals, phi, label=r"$\phi$")
 time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
 ax.set_xlim(0.0, L)
-ax.set_ylim(0.0, 1.0)
+ax.set_ylim(-0.2, 1.2)
 ax.set_xlabel("x")
 ax.set_ylabel(r"$\phi$")
+ax.hlines(y=0.0, xmin=0, xmax=5,color="r")
+ax.hlines(y=1.0, xmin=0, xmax=5,color="r")
 ax.legend()
 
 # Main time-stepping loop

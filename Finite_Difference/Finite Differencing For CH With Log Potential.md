@@ -110,6 +110,70 @@ $$
 %
 \vdots \\
 % 
-\phi_{N}^{i+1} - \phi_{N}^{i} = \frac{2\Delta t}{(\Delta x)^{2}}M_{N-1/2}^{i+1}\left( \mu_{N-1}^{i+1} - \mu_{N}^{i+1} \right)
+\phi_{N}^{i+1} - \phi_{N}^{i} - \frac{2\Delta t}{(\Delta x)^{2}}M_{N-1/2}^{i+1}\left( \mu_{N-1}^{i+1} - \mu_{N}^{i+1} \right)
 \end{pmatrix} = 0
 $$
+
+## Trying Method of Lines 
+
+Again starting from the same equations
+$$
+\begin{align}
+\frac{\partial \phi}{\partial t} &= \nabla \cdot (M \nabla \mu), \\
+\mu &= \frac{\partial f}{\partial \phi} - \kappa \nabla^{2}\phi.
+\end{align}
+$$
+But with the method of lines, we only employ a spatial discretization, while keeping time continuous. 
+
+For the interior points, we have,
+$$
+\frac{d \phi_{j}}{\partial t} = \frac{1}{(\Delta x)^{2}} \left( M_{j+1/2}( \mu_{j+1} -\mu_{j}) - M_{j-1/2}(\mu_{j} -  \mu_{j-1}) \right),
+$$
+with $\mu_{j}$ as an auxiliary variable
+$$
+\mu_{j} = \frac{\partial f}{\partial \phi}_{j} - \frac{\kappa}{(\Delta x)^{2}} \left(\phi_{j+1} - 2\phi_{j} + \phi_{j-1}\right)
+$$
+For the left BC ($j = 0, 1$)
+
+For the ghost node, we similarly note that $\phi_{-1} = \phi_{1}$,  at $j=0$, $M_{1/2} = M_{-1/2}$, which gives us
+$$
+\frac{d\phi_{0}}{dt} = \frac{2}{(\Delta x)^{2}} \left( M_{1/2}(\mu_{1} - \mu_{0}) \right),
+$$
+
+$$
+\frac{d\phi_{1}}{dt} = \frac{1}{(\Delta x)^{2}}(M_{1+1/2}(\mu_{2} - \mu_{1}) - M_{1/2}(\mu_{1}-\mu_{0}))
+$$
+
+with 
+$$
+\mu_{0} = \frac{\partial f}{\partial \phi}_{0} - \frac{2\kappa}{(\Delta x)^{2}} (\phi_{1} - \phi_{0})
+$$
+
+$$
+\mu_{1} = \frac{\partial f}{\partial \phi}_{1} -\frac{\kappa}{(\Delta x)^{2}}\left( \phi_{2} - 2\phi_{1} + \phi_{0} \right)
+$$
+
+$$
+\mu_{2} = \frac{\partial f}{\partial \phi}_{2} - \frac{\kappa}{(\Delta x)^{2}}(\phi_{3} - 2\phi_{2} + \phi_{1})
+$$
+
+And for the right BC ($j = N-1, N$)
+
+We similarly note that $\phi_{N+1} = \phi_{N-1}$ and $M_{N+1/2} = M_{N-1/2}$, which gives
+$$
+\frac{d\phi_{N}}{dt} = \frac{2}{(\Delta x)^{2}} \left(M_{N-1/2}(\mu_{N-1} - \mu_{N}) \right),
+$$
+
+$$
+\frac{d\phi_{N-1}}{dt} = \frac{1}{(\Delta x)^{2}}\left(M_{N-1/2}(\mu_{N} - \mu_{N-1}) - M_{N-1-1/2}(\mu_{N-1} - \mu_{N-2}) \right)
+$$
+
+where
+$$
+\mu_{N} = \frac{\partial f}{\partial \phi}_{N} - \frac{2\kappa}{(\Delta x)^{2}}(\phi_{N-1} - \phi_{N}),
+$$
+
+$$
+\mu_{N-1} = \frac{\partial f}{\partial \phi}_{N-1} - \frac{\kappa}{(\Delta x)^{2}}\left(\phi_{N} - 2\phi_{N-1} + \phi_{N-2} \right)
+$$
+
