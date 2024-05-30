@@ -2,4 +2,5 @@
 *.xdmf
 *.h5
 *.txt
+*.gif
 scratch.py
