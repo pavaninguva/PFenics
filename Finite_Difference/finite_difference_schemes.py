@@ -17,11 +17,11 @@ xvals = np.linspace(0,L,nx)
 
 #Timestepping parameters
 tf = 10
-nsteps = 10000
+nsteps = 1000
 dt = tf/nsteps
 
 #Material parameters
-chi = 10.0
+chi = 25.0
 kappa = (2/3)*chi
 
 #Provide analytical expressions for f and dfdphi
@@ -30,6 +30,12 @@ def potential(phi):
 
 def dfdphi(phi):
     return -2*chi*phi + chi - np.log(1-phi) + np.log(phi)
+
+def dfdphi_convex(phi):
+    return - np.log(1-phi) + np.log(phi)
+
+def dfdphi_concave(phi):
+    return -2*chi*phi + chi
 
 def mobility(phi):
     return phi*(1-phi)
@@ -41,6 +47,8 @@ def M_func_half(phi, phi_,option="1"):
         M_func = mobility(0.5*(phi+phi_))
     elif option == "3":
         M_func = (2*mobility(phi)*mobility(phi_))/(mobility(phi) + mobility(phi_))
+    elif option == "4":
+        M_func = 1
     else:
         raise ValueError("Specified option for mobility interpolation not available")
     return M_func
@@ -95,12 +103,30 @@ def theta_fd_res(phi_new, phi_old, theta=0.5):
     
     return res
 
+
+def convex_split_ch(phi_new, phi_old):
+    #Define chem_pot
+    mu_new = np.zeros_like(phi_old)
+
+    mu_new[0] = dfdphi_convex(phi_new[0]) + dfdphi_concave(phi_old[0]) -(2*kappa/(dx**2))*(phi_new[1] - phi_new[0])
+    mu_new[-1] = dfdphi_convex(phi_new[-1]) + dfdphi_concave(phi_old[-1]) - (2*kappa/(dx**2))*(phi_new[-2]-phi_new[-1])
+    mu_new[1:-1] = dfdphi_convex(phi_new[1:-1]) + dfdphi_concave(phi_old[1:-1]) - (kappa/(dx**2))*(phi_new[2:] -2*phi_new[1:-1] + phi_new[:-2])
+    
+    # Define discretized equations as F(phi_new) = 0
+    res = np.zeros_like(phi_old)
+
+    res[0] = (phi_new[0] - phi_old[0])/dt - (2/(dx**2))*(M_func_half(phi_new[0],phi_new[1]))*(mu_new[1] - mu_new[0])
+    res[-1] = (phi_new[-1] - phi_old[-1])/dt - (2/(dx**2))*(M_func_half(phi_new[-1],phi_new[-2]))*(mu_new[-2]-mu_new[-1])
+    res[1:-1] = (phi_new[1:-1] - phi_old[1:-1])/dt - (1/(dx**2))*(M_func_half(phi_new[1:-1], phi_new[2:])*(mu_new[2:]-mu_new[1:-1]) - M_func_half(phi_new[1:-1],phi_new[:-2])*(mu_new[1:-1]-mu_new[:-2]))
+
+    return res
+
 # Define initial condition as a sigmoid function
 def sigmoid(x, a, b):
     return 1 / (1 + np.exp(-a * (x - b)))
 
 # Parameters for the sigmoid function
-a = 5  # Controls the steepness of the sigmoid
+a = 10  # Controls the steepness of the sigmoid
 b = L / 2  # Center of the sigmoid function
 phi0 = 0.2 + 0.6 * sigmoid(xvals, a, b)
 # phi0 = np.random.normal(loc=0.5, scale=0.05, size=nx)
@@ -125,7 +151,7 @@ def update(n):
     phi_old = phi.copy()
 
     def wrapped_residual(phi_new):
-        return theta_fd_res(phi_new, phi_old,theta=0.5)
+        return convex_split_ch(phi_new, phi_old)
     
     phi_new = fsolve(wrapped_residual, phi_old)
     phi = phi_new.copy()

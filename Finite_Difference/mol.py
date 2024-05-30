@@ -20,7 +20,7 @@ nsteps = 10000
 dt = tf/nsteps
 
 #Material parameters
-chi = 10.0
+chi = 25.0
 kappa = (2/3)*chi
 
 #Provide analytical expressions for f and dfdphi
@@ -69,15 +69,15 @@ def ode_system(t,u):
 
 #Define initial condition:
 # # Define initial condition as a sigmoid function
-# def sigmoid(x, a, b):
-#     return 1 / (1 + np.exp(-a * (x - b)))
+def sigmoid(x, a, b):
+    return 1 / (1 + np.exp(-a * (x - b)))
 
-# # Parameters for the sigmoid function
-# a = 5  # Controls the steepness of the sigmoid
-# b = L / 2  # Center of the sigmoid function
-# phi0 = 0.2 + 0.6 * sigmoid(xvals, a, b)
+# Parameters for the sigmoid function
+a = 5  # Controls the steepness of the sigmoid
+b = L / 2  # Center of the sigmoid function
+phi0 = 0.2 + 0.6 * sigmoid(xvals, a, b)
 
-phi0 = np.random.normal(loc=0.5, scale=0.05, size=nx)
+# phi0 = np.random.normal(loc=0.5, scale=0.05, size=nx)
 #Solve 
 sol = solve_ivp(ode_system, [0,tf], phi0, method="RK23", atol=1e-8, rtol=1e-6)
 
