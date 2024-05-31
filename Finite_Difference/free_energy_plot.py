@@ -17,6 +17,22 @@ def quartic_pot(phi,A):
     f = A*(phi**2)*(1-phi)**2
     return f
 
+## Approx for log part
+def log_d(phi,delta = 1e-25):
+    def func_cond(x):
+        return x <= delta
+    def func1(x):
+        return np.log(delta) + (phi-delta)/delta - ((phi-delta)**2)/(2*delta**2) + ((phi-delta)**3)/(3*delta**3)
+    def func2(x):
+        return np.log(x)
+
+    f = np.where(func_cond(phi),func1(phi),func2(phi))
+    return f
+
+def dfdphi_approx(phi,chi):
+    f = phi*log_d(phi) + (1.0-phi)*log_d(1.0-phi) + chi*phi*(1.0-phi)
+    return f
+
 phi_vals = np.linspace(1e-12,1.0-1e-12,501)
 phi_vals2 = np.linspace(-1.0+1e-12,1.0-1e-12,501)
 
