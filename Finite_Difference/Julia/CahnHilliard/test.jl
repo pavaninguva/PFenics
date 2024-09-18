@@ -6,8 +6,7 @@ using Sundials
 using LaTeXStrings
 
 
-default(fontfamily="Computer Modern", framestyle=:box, label=false)
-plot!(legend=false, grid=false)
+
 
 # Parameters
 L = 4.0    # Length of the domain
@@ -16,7 +15,7 @@ dx = L / (nx - 1)
 xvals = LinRange(0, L, nx)
 tf = 20.0    # Final time
 
-χ = 15
+χ = 25
 κ = (2/3)*χ
 
 
